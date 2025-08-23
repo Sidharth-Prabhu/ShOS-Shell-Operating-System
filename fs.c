@@ -275,6 +275,86 @@ int fs_cd(const char *path) {
     return -1;
 }
 
+// Helper function to remove a node from its parent's children list
+int fs_remove_node(fs_node *node) {
+    if (node == NULL || node->parent == NULL) {
+        return -1;
+    }
+    
+    // Special case: node is the first child
+    if (node->parent->children == node) {
+        node->parent->children = node->next;
+        return 0;
+    }
+    
+    // Find the node in the children list
+    fs_node *current = node->parent->children;
+    while (current != NULL && current->next != node) {
+        current = current->next;
+    }
+    
+    if (current != NULL) {
+        current->next = node->next;
+        return 0;
+    }
+    
+    return -1; // Node not found in parent's children
+}
+
+int fs_rm(const char *path) {
+    if (path == NULL || kstrlen(path) == 0) {
+        vga_puts("Usage: rm <file_or_directory>\n");
+        return -1;
+    }
+    
+    // Check if it's a file
+    fs_node *file = fs_find_file(path);
+    if (file != NULL) {
+        if (fs_remove_node(file) == 0) {
+            vga_puts("Removed file: ");
+            vga_puts(path);
+            vga_puts("\n");
+            return 0;
+        }
+    }
+    
+    // Check if it's a directory
+    fs_node *dir = fs_find_dir(path);
+    if (dir != NULL) {
+        // Check if directory is empty
+        if (dir->children != NULL) {
+            vga_puts("Cannot remove directory: ");
+            vga_puts(path);
+            vga_puts(" is not empty\n");
+            return -1;
+        }
+        
+        // Don't allow removing current directory
+        if (dir == current_dir) {
+            vga_puts("Cannot remove current directory\n");
+            return -1;
+        }
+        
+        // Don't allow removing root directory
+        if (dir == &root_dir) {
+            vga_puts("Cannot remove root directory\n");
+            return -1;
+        }
+        
+        if (fs_remove_node(dir) == 0) {
+            vga_puts("Removed directory: ");
+            vga_puts(path);
+            vga_puts("\n");
+            return 0;
+        }
+    }
+    
+    vga_puts("File or directory not found: ");
+    vga_puts(path);
+    vga_puts("\n");
+    return -1;
+}
+
 fs_node *fs_get_current_dir(void) {
     return current_dir;
 }

@@ -40,6 +40,8 @@ int fs_cat(const char *filename);  // Read file content
 int fs_ls(const char *path);
 int fs_pwd(void);
 int fs_cd(const char *path);
+int fs_rm(const char *path);
+int fs_remove_node(fs_node *node);
 fs_node *fs_get_current_dir(void);
 fs_node *fs_find_file(const char *filename);  // Find file in current dir
 

@@ -32,6 +32,7 @@ void cmd_touch(char *args[]);
 void cmd_cat(char *args[]);
 void cmd_edit(char *args[]);
 void cmd_write(char *args[]);
+void cmd_rm(char *args[]);
 
 // Command structure
 typedef struct {
@@ -60,6 +61,7 @@ Command commands[] = {
     {"cat", cmd_cat, "View file content: cat <filename>"},
     {"edit", cmd_edit, "Edit file: edit <filename>"},
     {"write", cmd_write, "Write to file: write <filename> <content>"},
+    {"rm", cmd_rm, "Remove file or empty directory: rm <path>"},
     {0, 0, 0} // End marker
 };
 
@@ -282,6 +284,14 @@ void cmd_write(char *args[]) {
     }
     
     fs_write(args[1], content);
+}
+
+void cmd_rm(char *args[]) {
+    if (!args[1]) {
+        vga_puts("Usage: rm <file_or_directory>\n");
+        return;
+    }
+    fs_rm(args[1]);
 }
 
 // Find and execute command

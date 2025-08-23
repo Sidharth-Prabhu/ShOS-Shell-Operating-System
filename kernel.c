@@ -1,9 +1,10 @@
 // kernel.c
 #include "vga.h"
 #include "shell.h"
+#include "splash.h"
 
 void kmain() {
-    vga_clear(); // Clear screen
-    vga_puts("Welcome to MyOS!\n");
+    show_splash_screen();  // Show splash screen first
+    vga_puts("Welcome to ShOS!\n");  // Changed from MyOS to ShOS
     shell_run(); // Start shell
 }

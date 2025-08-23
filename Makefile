@@ -8,13 +8,13 @@ ASFLAGS = -f elf32
 
 all: myos.bin
 
-myos.bin: boot.o kernel.o shell.o vga.o klib.o tictactoe.o
+myos.bin: boot.o kernel.o shell.o vga.o klib.o tictactoe.o splash.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 boot.o: boot.asm
 	$(AS) $(ASFLAGS) -o $@ $<
 
-kernel.o: kernel.c vga.h shell.h
+kernel.o: kernel.c vga.h shell.h splash.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 shell.o: shell.c vga.h klib.h shell.h tictactoe.h
@@ -27,6 +27,9 @@ klib.o: klib.c klib.h vga.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 tictactoe.o: tictactoe.c tictactoe.h vga.h klib.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+splash.o: splash.c splash.h vga.h klib.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 run: myos.bin

@@ -46,6 +46,12 @@ void vga_putc(char c) {
     }
 }
 
+void vga_putc_at(int x, int y, char c) {
+    if (x >= 0 && x < VGA_WIDTH && y >= 0 && y < VGA_HEIGHT) {
+        vga_buffer[y * VGA_WIDTH + x] = (0x07 << 8) | c;
+    }
+}
+
 void vga_puts(const char *s) {
     while (*s) vga_putc(*s++);
 }

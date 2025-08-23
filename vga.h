@@ -12,5 +12,6 @@ extern int vga_x, vga_y;
 void vga_clear(void);
 void vga_putc(char c);
 void vga_puts(const char *s);
+void vga_putc_at(int x, int y, char c);
 
 #endif

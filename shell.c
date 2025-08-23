@@ -2,6 +2,7 @@
 #include "vga.h"
 #include "klib.h"
 #include "shell.h"
+#include "tictactoe.h"
 
 #define MAX_INPUT 80
 #define MAX_ARGS 10
@@ -16,6 +17,7 @@ void cmd_add(char *args[]);
 void cmd_subtract(char *args[]);
 void cmd_multiply(char *args[]);
 void cmd_divide(char *args[]);
+void cmd_tictactoe(char *args[]);
 
 // Command structure
 typedef struct {
@@ -35,76 +37,9 @@ Command commands[] = {
     {"sub", cmd_subtract, "Subtract two numbers: sub <num1> <num2>"},
     {"mul", cmd_multiply, "Multiply two numbers: mul <num1> <num2>"},
     {"div", cmd_divide, "Divide two numbers: div <num1> <num2>"},
+    {"tictactoe", cmd_tictactoe, "Play Tic Tac Toe game"}, 
     {0, 0, 0} // End marker
 };
-
-// String to integer conversion
-int str_to_int(const char *str) {
-    int result = 0;
-    int sign = 1;
-    int i = 0;
-    
-    // Handle negative numbers
-    if (str[0] == '-') {
-        sign = -1;
-        i = 1;
-    }
-    
-    // Convert each character to digit
-    while (str[i] != '\0') {
-        if (str[i] >= '0' && str[i] <= '9') {
-            result = result * 10 + (str[i] - '0');
-            i++;
-        } else {
-            return 0; // Invalid character
-        }
-    }
-    
-    return result * sign;
-}
-
-// Integer to string conversion
-void int_to_str(int num, char *str) {
-    int i = 0;
-    int is_negative = 0;
-    
-    if (num < 0) {
-        is_negative = 1;
-        num = -num;
-    }
-    
-    // Handle zero case
-    if (num == 0) {
-        str[i++] = '0';
-        str[i] = '\0';
-        return;
-    }
-    
-    // Convert digits in reverse order
-    while (num != 0) {
-        int digit = num % 10;
-        str[i++] = '0' + digit;
-        num = num / 10;
-    }
-    
-    // Add negative sign if needed
-    if (is_negative) {
-        str[i++] = '-';
-    }
-    
-    str[i] = '\0';
-    
-    // Reverse the string
-    int start = 0;
-    int end = i - 1;
-    while (start < end) {
-        char temp = str[start];
-        str[start] = str[end];
-        str[end] = temp;
-        start++;
-        end--;
-    }
-}
 
 // Parse input into arguments
 int parse_args(char *input, char *args[]) {
@@ -246,6 +181,11 @@ void cmd_divide(char *args[]) {
     vga_puts("Result: ");
     vga_puts(result_str);
     vga_puts("\n");
+}
+
+void cmd_tictactoe(char *args[]) {  // Change from cmd_pong
+    (void)args;
+    tictactoe_game();  // Change from pong_game()
 }
 
 // Find and execute command

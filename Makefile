@@ -2,14 +2,17 @@ CC = gcc
 AS = nasm
 LD = ld
 
-CFLAGS = -ffreestanding -m32 -Wall -Wextra
+CFLAGS = -ffreestanding -m32 -Wall -Wextra -nostdlib
 LDFLAGS = -T linker.ld -melf_i386
 ASFLAGS = -f elf32
 
 all: myos.bin
 
-myos.bin: boot.o kernel.o shell.o vga.o klib.o tictactoe.o splash.o
+myos.bin: boot.o kernel.o shell.o vga.o klib.o tictactoe.o splash.o fs.o
 	$(LD) $(LDFLAGS) -o $@ $^
+
+fs.o: fs.c fs.h vga.h klib.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 boot.o: boot.asm
 	$(AS) $(ASFLAGS) -o $@ $<

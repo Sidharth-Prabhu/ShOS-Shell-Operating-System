@@ -1,9 +1,14 @@
 // shell.c
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
 #include "vga.h"
 #include "klib.h"
 #include "shell.h"
 #include "tictactoe.h"
 #include "fs.h"
+#include "editor.h"
+#include <stddef.h>
 
 #define MAX_INPUT 80
 #define MAX_ARGS 10
@@ -23,7 +28,10 @@ void cmd_mkdir(char *args[]);
 void cmd_ls(char *args[]);
 void cmd_pwd(char *args[]);
 void cmd_cd(char *args[]);
-
+void cmd_touch(char *args[]);
+void cmd_cat(char *args[]);
+void cmd_edit(char *args[]);
+void cmd_write(char *args[]);
 
 // Command structure
 typedef struct {
@@ -48,6 +56,10 @@ Command commands[] = {
     {"ls", cmd_ls, "List directory contents: ls [path]"},
     {"pwd", cmd_pwd, "Print working directory"},
     {"cd", cmd_cd, "Change directory: cd [path]"},
+    {"touch", cmd_touch, "Create file: touch <filename>"},
+    {"cat", cmd_cat, "View file content: cat <filename>"},
+    {"edit", cmd_edit, "Edit file: edit <filename>"},
+    {"write", cmd_write, "Write to file: write <filename> <content>"},
     {0, 0, 0} // End marker
 };
 
@@ -71,27 +83,6 @@ int parse_args(char *input, char *args[]) {
     
     args[argc] = 0; // Null-terminate argument list
     return argc;
-}
-
-void cmd_mkdir(char *args[]) {
-    if (!args[1]) {
-        vga_puts("Usage: mkdir <dirname>\n");
-        return;
-    }
-    fs_mkdir(args[1]);
-}
-
-void cmd_ls(char *args[]) {
-    fs_ls(args[1]); // args[1] can be NULL for current dir
-}
-
-void cmd_pwd(char *args[]) {
-    (void)args;
-    fs_pwd();
-}
-
-void cmd_cd(char *args[]) {
-    fs_cd(args[1]); // args[1] can be NULL for home dir
 }
 
 // Command implementations
@@ -122,7 +113,7 @@ void cmd_echo(char *args[]) {
 
 void cmd_info(char *args[]) {
     (void)args; // Unused parameter
-    vga_puts("MyOS v0.1\n");
+    vga_puts("ShOS v1.0\n");  // Changed from MyOS to ShOS
     vga_puts("Simple operating system kernel\n");
     vga_puts("VGA text mode: 80x25\n");
 }
@@ -214,9 +205,83 @@ void cmd_divide(char *args[]) {
     vga_puts("\n");
 }
 
-void cmd_tictactoe(char *args[]) {  // Changed from cmd_pong
+void cmd_tictactoe(char *args[]) {
     (void)args; // Unused parameter
-    tictactoe_game();  // Changed from pong_game()
+    tictactoe_game();
+}
+
+void cmd_mkdir(char *args[]) {
+    if (!args[1]) {
+        vga_puts("Usage: mkdir <dirname>\n");
+        return;
+    }
+    fs_mkdir(args[1]);
+}
+
+void cmd_ls(char *args[]) {
+    fs_ls(args[1]); // args[1] can be NULL for current dir
+}
+
+void cmd_pwd(char *args[]) {
+    (void)args;
+    fs_pwd();
+}
+
+void cmd_cd(char *args[]) {
+    fs_cd(args[1]); // args[1] can be NULL for home dir
+}
+
+void cmd_touch(char *args[]) {
+    if (!args[1]) {
+        vga_puts("Usage: touch <filename>\n");
+        return;
+    }
+    fs_touch(args[1]);
+}
+
+void cmd_cat(char *args[]) {
+    if (!args[1]) {
+        vga_puts("Usage: cat <filename>\n");
+        return;
+    }
+    fs_cat(args[1]);
+}
+
+void cmd_edit(char *args[]) {
+    if (!args[1]) {
+        vga_puts("Usage: edit <filename>\n");
+        return;
+    }
+    
+    // Create file if it doesn't exist
+    if (fs_find_file(args[1]) == NULL) {
+        fs_touch(args[1]);
+    }
+    
+    editor_nano(args[1]);
+}
+
+void cmd_write(char *args[]) {
+    if (!args[1] || !args[2]) {
+        vga_puts("Usage: write <filename> <content>\n");
+        return;
+    }
+    
+    // Create file if it doesn't exist
+    if (fs_find_file(args[1]) == NULL) {
+        fs_touch(args[1]);
+    }
+    
+    // Combine all arguments after filename as content
+    char content[256] = {0};
+    for (int i = 2; args[i]; i++) {
+        kstrcat(content, args[i]);
+        if (args[i + 1]) {
+            kstrcat(content, " ");
+        }
+    }
+    
+    fs_write(args[1], content);
 }
 
 // Find and execute command
@@ -241,7 +306,7 @@ void execute_command(char *input) {
 void shell_run() {
     char input[MAX_INPUT];
     
-    vga_puts("MyOS Shell - Type 'help' for available commands\n");
+    vga_puts("ShOS Shell - Type 'help' for available commands\n");
     
     while (1) {
         vga_puts("> ");

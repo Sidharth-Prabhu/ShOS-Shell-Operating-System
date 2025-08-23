@@ -14,6 +14,7 @@ void fs_init(void) {
     root_dir.type = TYPE_DIRECTORY;
     root_dir.data = NULL;
     root_dir.size = 0;
+    root_dir.capacity = 0;
     root_dir.parent = NULL;
     root_dir.children = NULL;
     root_dir.next = NULL;
@@ -32,11 +33,34 @@ fs_node *fs_create_node(const char *name, fs_node_type type) {
     node->type = type;
     node->data = NULL;
     node->size = 0;
+    node->capacity = 0;
     node->parent = current_dir;
     node->children = NULL;
     node->next = NULL;
     
     return node;
+}
+
+fs_node *fs_find_file(const char *filename) {
+    fs_node *current = current_dir->children;
+    while (current != NULL) {
+        if (kstreq(current->name, filename) && current->type == TYPE_FILE) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+fs_node *fs_find_dir(const char *dirname) {
+    fs_node *current = current_dir->children;
+    while (current != NULL) {
+        if (kstreq(current->name, dirname) && current->type == TYPE_DIRECTORY) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
 }
 
 int fs_mkdir(const char *path) {
@@ -45,15 +69,11 @@ int fs_mkdir(const char *path) {
     }
     
     // Check if directory already exists
-    fs_node *current = current_dir->children;
-    while (current != NULL) {
-        if (kstreq(current->name, path) && current->type == TYPE_DIRECTORY) {
-            vga_puts("Directory already exists: ");
-            vga_puts(path);
-            vga_puts("\n");
-            return -1;
-        }
-        current = current->next;
+    if (fs_find_dir(path) != NULL) {
+        vga_puts("Directory already exists: ");
+        vga_puts(path);
+        vga_puts("\n");
+        return -1;
     }
     
     // Create new directory
@@ -73,10 +93,86 @@ int fs_mkdir(const char *path) {
     return 0;
 }
 
-int fs_ls(const char *path) {
-    // Remove the unused variable
-    // fs_node *dir = current_dir;  // This line is commented out
+int fs_touch(const char *filename) {
+    if (kstrlen(filename) == 0 || kstrlen(filename) >= MAX_FILENAME_LEN) {
+        return -1; // Invalid filename
+    }
     
+    // Check if file already exists
+    if (fs_find_file(filename) != NULL) {
+        vga_puts("File already exists: ");
+        vga_puts(filename);
+        vga_puts("\n");
+        return -1;
+    }
+    
+    // Create new file
+    fs_node *new_file = fs_create_node(filename, TYPE_FILE);
+    if (new_file == NULL) {
+        vga_puts("Cannot create file: filesystem full\n");
+        return -1;
+    }
+    
+    // Add to current directory's children
+    new_file->next = current_dir->children;
+    current_dir->children = new_file;
+    
+    vga_puts("Created file: ");
+    vga_puts(filename);
+    vga_puts("\n");
+    return 0;
+}
+
+int fs_write(const char *filename, const char *content) {
+    fs_node *file = fs_find_file(filename);
+    if (file == NULL) {
+        vga_puts("File not found: ");
+        vga_puts(filename);
+        vga_puts("\n");
+        return -1;
+    }
+    
+    // For simplicity, we'll just store the content pointer
+    // In a real OS, we'd copy the content to allocated memory
+    file->data = (char*)content;
+    file->size = kstrlen(content);
+    
+    vga_puts("Written to ");
+    vga_puts(filename);
+    vga_puts("\n");
+    return 0;
+}
+
+int fs_cat(const char *filename) {
+    fs_node *file = fs_find_file(filename);
+    if (file == NULL) {
+        vga_puts("File not found: ");
+        vga_puts(filename);
+        vga_puts("\n");
+        return -1;
+    }
+    
+    if (file->size == 0 || file->data == NULL) {
+        vga_puts("File is empty: ");
+        vga_puts(filename);
+        vga_puts("\n");
+        return 0;
+    }
+    
+    vga_puts("Contents of ");
+    vga_puts(filename);
+    vga_puts(":\n");
+    
+    // Display file content
+    for (unsigned int i = 0; i < file->size; i++) {
+        vga_putc(file->data[i]);
+    }
+    vga_puts("\n");
+    
+    return 0;
+}
+
+int fs_ls(const char *path) {
     // If path is provided, we'd need to navigate to it
     // For simplicity, just list current directory
     if (path != NULL && kstrlen(path) > 0) {
@@ -122,7 +218,7 @@ int fs_pwd(void) {
     char path[MAX_PATH_LEN] = "";
     fs_node *node = current_dir;
     
-    while (node != NULL) {
+    while (node != NULL && node != &root_dir) {
         char temp[MAX_PATH_LEN];
         kstrcpy(temp, path);
         kstrcpy(path, "/");
@@ -167,13 +263,10 @@ int fs_cd(const char *path) {
     }
     
     // Look for directory in current directory
-    fs_node *current = current_dir->children;
-    while (current != NULL) {
-        if (kstreq(current->name, path) && current->type == TYPE_DIRECTORY) {
-            current_dir = current;
-            return 0;
-        }
-        current = current->next;
+    fs_node *dir = fs_find_dir(path);
+    if (dir != NULL) {
+        current_dir = dir;
+        return 0;
     }
     
     vga_puts("Directory not found: ");

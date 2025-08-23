@@ -17,7 +17,7 @@ boot.o: boot.asm
 kernel.o: kernel.c vga.h shell.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-shell.o: shell.c vga.h klib.h shell.h pong.h
+shell.o: shell.c vga.h klib.h shell.h tictactoe.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 vga.o: vga.c vga.h
@@ -26,7 +26,7 @@ vga.o: vga.c vga.h
 klib.o: klib.c klib.h vga.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-tictactoe.o: tictactoe.c tictactoe.h vga.h klib.h  # Add this target
+tictactoe.o: tictactoe.c tictactoe.h vga.h klib.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 run: myos.bin

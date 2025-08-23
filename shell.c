@@ -2,7 +2,7 @@
 #include "vga.h"
 #include "klib.h"
 #include "shell.h"
-#include "tictactoe.h"
+#include "tictactoe.h"  // Changed from pong.h to tictactoe.h
 
 #define MAX_INPUT 80
 #define MAX_ARGS 10
@@ -17,7 +17,7 @@ void cmd_add(char *args[]);
 void cmd_subtract(char *args[]);
 void cmd_multiply(char *args[]);
 void cmd_divide(char *args[]);
-void cmd_tictactoe(char *args[]);
+void cmd_tictactoe(char *args[]);  // Changed from cmd_pong
 
 // Command structure
 typedef struct {
@@ -37,7 +37,7 @@ Command commands[] = {
     {"sub", cmd_subtract, "Subtract two numbers: sub <num1> <num2>"},
     {"mul", cmd_multiply, "Multiply two numbers: mul <num1> <num2>"},
     {"div", cmd_divide, "Divide two numbers: div <num1> <num2>"},
-    {"tictactoe", cmd_tictactoe, "Play Tic Tac Toe game"}, 
+    {"tictactoe", cmd_tictactoe, "Play Tic Tac Toe game"},  // Changed from pong
     {0, 0, 0} // End marker
 };
 
@@ -183,9 +183,9 @@ void cmd_divide(char *args[]) {
     vga_puts("\n");
 }
 
-void cmd_tictactoe(char *args[]) {  // Change from cmd_pong
-    (void)args;
-    tictactoe_game();  // Change from pong_game()
+void cmd_tictactoe(char *args[]) {  // Changed from cmd_pong
+    (void)args; // Unused parameter
+    tictactoe_game();  // Changed from pong_game()
 }
 
 // Find and execute command

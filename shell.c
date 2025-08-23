@@ -12,6 +12,10 @@ void cmd_clear(char *args[]);
 void cmd_echo(char *args[]);
 void cmd_info(char *args[]);
 void cmd_shutdown(char *args[]);
+void cmd_add(char *args[]);
+void cmd_subtract(char *args[]);
+void cmd_multiply(char *args[]);
+void cmd_divide(char *args[]);
 
 // Command structure
 typedef struct {
@@ -27,8 +31,80 @@ Command commands[] = {
     {"echo", cmd_echo, "Echo arguments back to the screen"},
     {"info", cmd_info, "Show system information"},
     {"shutdown", cmd_shutdown, "Shutdown the system"},
+    {"add", cmd_add, "Add two numbers: add <num1> <num2>"},
+    {"sub", cmd_subtract, "Subtract two numbers: sub <num1> <num2>"},
+    {"mul", cmd_multiply, "Multiply two numbers: mul <num1> <num2>"},
+    {"div", cmd_divide, "Divide two numbers: div <num1> <num2>"},
     {0, 0, 0} // End marker
 };
+
+// String to integer conversion
+int str_to_int(const char *str) {
+    int result = 0;
+    int sign = 1;
+    int i = 0;
+    
+    // Handle negative numbers
+    if (str[0] == '-') {
+        sign = -1;
+        i = 1;
+    }
+    
+    // Convert each character to digit
+    while (str[i] != '\0') {
+        if (str[i] >= '0' && str[i] <= '9') {
+            result = result * 10 + (str[i] - '0');
+            i++;
+        } else {
+            return 0; // Invalid character
+        }
+    }
+    
+    return result * sign;
+}
+
+// Integer to string conversion
+void int_to_str(int num, char *str) {
+    int i = 0;
+    int is_negative = 0;
+    
+    if (num < 0) {
+        is_negative = 1;
+        num = -num;
+    }
+    
+    // Handle zero case
+    if (num == 0) {
+        str[i++] = '0';
+        str[i] = '\0';
+        return;
+    }
+    
+    // Convert digits in reverse order
+    while (num != 0) {
+        int digit = num % 10;
+        str[i++] = '0' + digit;
+        num = num / 10;
+    }
+    
+    // Add negative sign if needed
+    if (is_negative) {
+        str[i++] = '-';
+    }
+    
+    str[i] = '\0';
+    
+    // Reverse the string
+    int start = 0;
+    int end = i - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
 
 // Parse input into arguments
 int parse_args(char *input, char *args[]) {
@@ -92,6 +168,84 @@ void cmd_shutdown(char *args[]) {
     // For now, just halt
     asm volatile ("cli");
     asm volatile ("hlt");
+}
+
+void cmd_add(char *args[]) {
+    if (!args[1] || !args[2]) {
+        vga_puts("Usage: add <num1> <num2>\n");
+        return;
+    }
+    
+    int num1 = str_to_int(args[1]);
+    int num2 = str_to_int(args[2]);
+    int result = num1 + num2;
+    
+    char result_str[20];
+    int_to_str(result, result_str);
+    
+    vga_puts("Result: ");
+    vga_puts(result_str);
+    vga_puts("\n");
+}
+
+void cmd_subtract(char *args[]) {
+    if (!args[1] || !args[2]) {
+        vga_puts("Usage: sub <num1> <num2>\n");
+        return;
+    }
+    
+    int num1 = str_to_int(args[1]);
+    int num2 = str_to_int(args[2]);
+    int result = num1 - num2;
+    
+    char result_str[20];
+    int_to_str(result, result_str);
+    
+    vga_puts("Result: ");
+    vga_puts(result_str);
+    vga_puts("\n");
+}
+
+void cmd_multiply(char *args[]) {
+    if (!args[1] || !args[2]) {
+        vga_puts("Usage: mul <num1> <num2>\n");
+        return;
+    }
+    
+    int num1 = str_to_int(args[1]);
+    int num2 = str_to_int(args[2]);
+    int result = num1 * num2;
+    
+    char result_str[20];
+    int_to_str(result, result_str);
+    
+    vga_puts("Result: ");
+    vga_puts(result_str);
+    vga_puts("\n");
+}
+
+void cmd_divide(char *args[]) {
+    if (!args[1] || !args[2]) {
+        vga_puts("Usage: div <num1> <num2>\n");
+        return;
+    }
+    
+    int num1 = str_to_int(args[1]);
+    int num2 = str_to_int(args[2]);
+    
+    if (num2 == 0) {
+        vga_puts("Error: Division by zero\n");
+        return;
+    }
+    
+    int result = num1 / num2;
+    
+    char result_str[20];
+    int_to_str(result, result_str);
+    
+    vga_puts("Result: ");
+    vga_puts(result_str);
+    vga_puts("\n");
 }
 
 // Find and execute command

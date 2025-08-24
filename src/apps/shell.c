@@ -319,7 +319,7 @@ void shell_run() {
     vga_puts("ShOS Shell - Type 'help' for available commands\n");
     
     while (1) {
-        vga_puts("> ");
+        vga_puts("ShOS Shell > ");
         kgets(input, MAX_INPUT);
         execute_command(input);
     }
